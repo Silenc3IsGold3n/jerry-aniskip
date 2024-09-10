@@ -45,6 +45,8 @@ But the script also has a lot of other features, which you can find in the featu
 
 - Output episode links in JSON format
 
+- Ani-Skip support to automatically skip openings and outros.
+
 
 ## Installation
 ### Linux/macOS
