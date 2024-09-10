@@ -90,7 +90,7 @@ usage() {
     -w, --website
       Choose which website to get video links from (default: allanime) (currently supported: allanime, aniwatch, yugen, hdrezka and crunchyroll)
 
-    Note: 
+    Note:
       All arguments can be specified in the config file as well.
       If an argument is specified in both the config file and the command line, the command line argument will be used.
 
@@ -128,6 +128,7 @@ configuration() {
     [ -z "$sub_or_dub" ] && sub_or_dub="sub"
     [ -z "$score_on_completion" ] && score_on_completion="false"
     [ "$no_anilist" = false ] && no_anilist=""
+    [ "$ani_skip" ] && ani_skip=false
     [ -z "$discord_presence" ] && discord_presence="false"
     [ -z "$presence_script_path" ] && presence_script_path="jerrydiscordpresence.py"
     [ -z "$rofi_prompt_config" ] && rofi_prompt_config="$HOME/.config/rofi/config.rasi"
@@ -1184,6 +1185,8 @@ play_video() {
         aniworld) displayed_title="$episode_title" ;;
         *) displayed_title="$title - Ep $((progress + 1))" ;;
     esac
+
+
     case $player in
         mpv | mpv.exe)
             if [ -f "$history_file" ] && [ -z "$using_number" ]; then
@@ -1202,14 +1205,14 @@ play_video() {
                 if [ "$discord_presence" = "true" ]; then
                     eval "$presence_script_path" \"$player\" \"${title}\" \"${start_year}\" \"$((progress + 1))\" \"${video_link}\" \"${subs_links}\" ${opts} 2>&1 | tee $tmp_position
                 else
-                    $player "$video_link" $opts "$subs_arg" "$subs_links" --force-media-title="$displayed_title" --msg-level=ffmpeg/demuxer=error 2>&1 | tee $tmp_position
+                    $player $skip_flags "$video_link" $opts "$subs_arg" "$subs_links" --force-media-title="$displayed_title" --msg-level=ffmpeg/demuxer=error 2>&1 | tee $tmp_position
                 fi
             else
                 send_notification "$title" "4000" "$images_cache_dir/$media_id.jpg" "$title"
                 if [ "$discord_presence" = "true" ]; then
                     eval "$presence_script_path" \"$player\" \"${title}\" \"${start_year}\" \"$((progress + 1))\" \"${video_link}\" \"\" ${opts} 2>&1 | tee $tmp_position
                 else
-                    $player "$video_link" $opts --force-media-title="$displayed_title" --msg-level=ffmpeg/demuxer=error 2>&1 | tee $tmp_position
+                    $player $skip_flags "$video_link" $opts --force-media-title="$displayed_title" --msg-level=ffmpeg/demuxer=error 2>&1 | tee $tmp_position
                 fi
             fi
             stopped_at=$($sed -nE "s@.*AV: ([0-9:]*) / ([0-9:]*) \(([0-9]*)%\).*@\1@p" "$tmp_position" | tail -1)
@@ -1296,6 +1299,14 @@ watch_anime() {
         if [ "$episode_id" = "$episode_title" ]; then
             episode_title=""
         fi
+    fi
+
+    send_notification "Skip flags: $skip_flags"
+    if [ -n "$ani_skip" ]; then
+        this_ep="$((progress + 1))"
+        skip_flags="$(ani-skip -q "$title" -e "$this_ep")"
+    else
+        send_notification "No Skip flags: $skip_flags"
     fi
 
     get_json
