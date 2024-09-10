@@ -175,6 +175,7 @@ For more information on the configuration file, please check the wiki.
 - rofi (optional)
 - ueberzugpp (image preview in fzf) (optional)
 - jq (for displaying anime/manga info) (optional)
+- ani-skip (optional)
 
 ## Credits
 - Anilist API: [https://anilist.co/api/](https://anilist.gitbook.io/anilist-apiv2-docs)https://anilist.gitbook.io/anilist-apiv2-docs
